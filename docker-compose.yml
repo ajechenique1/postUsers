@@ -1,0 +1,48 @@
+version : '3'
+
+services:
+    webserver:
+        build:
+          context: '.'
+        container_name: challenge-php
+        ports:
+            - "8045:80"
+        networks:
+            backend-net:
+                ipv4_address: 49.0.111.2
+        volumes:
+            - .:/var/www/html
+        environment:
+            - DB_HOST=${DB_HOST}
+            - DB_PORT=${DB_PORT}
+            - DB_DATABASE=${DB_DATABASE}
+            - DB_USERNAME=${DB_USERNAME}
+            - DB_PASSWORD=${DB_PASSWORD}
+            - URL_GET_USER=${URL_GET_USER}
+            - URL_GET_POST=${URL_GET_POST}
+        links:
+            - db
+        depends_on:
+            - db   
+        command: sh /var/www/html/init.sh
+
+    db:
+        image: nouchka/sqlite3:latest
+        stdin_open: true
+        tty: true
+        volumes:
+            - ./storage/database/:/root/db/
+        ports:
+            - '9095:9095' 
+        networks:
+            backend-net:
+                ipv4_address: 49.0.111.3
+    
+
+networks:
+    backend-net:
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                - subnet: 49.0.111.0/26
